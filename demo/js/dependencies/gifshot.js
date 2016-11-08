@@ -1133,17 +1133,21 @@ AnimatedGIF = function (utils, frameWorkerCode, NeuQuant, GifWriter) {
     'setRepeat': function (r) {
       this.repeat = r;
     },
-    'addFrame': function (element, gifshotOptions) {
+    'addFrame': function (element, gifshotOptions, frameText) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
       var self = this, ctx = self.ctx, options = self.options, width = options.gifWidth, height = options.gifHeight, gifHeight = gifshotOptions.gifHeight, gifWidth = gifshotOptions.gifWidth, text = gifshotOptions.text, fontWeight = gifshotOptions.fontWeight, fontSize = utils.getFontSize(gifshotOptions), fontFamily = gifshotOptions.fontFamily, fontColor = gifshotOptions.fontColor, textAlign = gifshotOptions.textAlign, textBaseline = gifshotOptions.textBaseline, textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2, textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height, font = fontWeight + ' ' + fontSize + ' ' + fontFamily, imageData;
       try {
         ctx.drawImage(element, 0, 0, width, height);
-        if (text) {
+        if (text || frameText) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
           ctx.textBaseline = textBaseline;
-          ctx.fillText(text, textXCoordinate, textYCoordinate);
+          if (frameText) {
+            ctx.fillText(frameText, textXCoordinate, textYCoordinate);
+          } else {
+            ctx.fillText(text, textXCoordinate, textYCoordinate);
+          }
         }
         imageData = ctx.getImageData(0, 0, width, height);
         self.addFrameImageData(imageData);
@@ -1207,12 +1211,16 @@ existingImages = function (obj) {
   var images = obj.images, imagesLength = obj.imagesLength, callback = obj.callback, options = obj.options, skipObj = {
       'getUserMedia': true,
       'window.URL': true
-    }, errorObj = error.validate(skipObj), loadedImages = [], loadedImagesLength = 0, tempImage, ag;
+    }, errorObj = error.validate(skipObj), loadedImages = [], loadedImagesLength = 0, tempImage, self = this, ag;
   if (errorObj.error) {
     return callback(errorObj);
   }
   ag = new AnimatedGIF(options);
-  utils.each(images, function (index, currentImage) {
+  utils.each(images, function (index, image) {
+    var currentImage = image;
+    if (image.src) {
+      currentImage = currentImage.src;
+    }
     if (utils.isElement(currentImage)) {
       if (options.crossOrigin) {
         currentImage.crossOrigin = options.crossOrigin;
@@ -1228,12 +1236,25 @@ existingImages = function (obj) {
         tempImage.crossOrigin = options.crossOrigin;
       }
       tempImage.onerror = function (e) {
+        if (!errorObj.error) {
+          errorObj.error = 'unable to load one or more images';
+        }
         if (loadedImages.length > index) {
           loadedImages[index] = undefined;
         }
       }(function (tempImage) {
-        tempImage.onload = function () {
-          loadedImages[index] = tempImage;
+        if (image.text) {
+          tempImage.text = image.text;
+        }
+        tempImage.onload = function (e) {
+          if (image.text) {
+            loadedImages[index] = {
+              img: tempImage,
+              text: tempImage.text
+            };
+          } else {
+            loadedImages[index] = tempImage;
+          }
           loadedImagesLength += 1;
           if (loadedImagesLength === imagesLength) {
             addLoadedImagesToGif();
@@ -1252,7 +1273,11 @@ existingImages = function (obj) {
   function addLoadedImagesToGif() {
     utils.each(loadedImages, function (index, loadedImage) {
       if (loadedImage) {
-        ag.addFrame(loadedImage, options);
+        if (loadedImage.text) {
+          ag.addFrame(loadedImage.img, options, loadedImage.text);
+        } else {
+          ag.addFrame(loadedImage, options);
+        }
       }
     });
     getBase64GIF(ag, callback);

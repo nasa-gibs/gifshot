@@ -24,16 +24,19 @@ define([
       loadedImages = [ ],
       loadedImagesLength = 0,
       tempImage,
+      self = this,
       ag;
-
     if (errorObj.error) {
       return callback(errorObj);
     }
-
     // change workerPath to point to where Animated_GIF.worker.js is
     ag = new AnimatedGIF(options);
 
-    utils.each(images, function(index, currentImage) {
+    utils.each(images, function(index, image) {
+      var currentImage = image;
+      if(image.src) {
+        currentImage = currentImage.src;
+      }
       if (utils.isElement(currentImage)) {
         if (options.crossOrigin) {
           currentImage.crossOrigin = options.crossOrigin;
@@ -50,15 +53,24 @@ define([
           tempImage.crossOrigin = options.crossOrigin;
         }
         tempImage.onerror = function(e) {
-          // If there is an error, ignore the image
+          if(!errorObj.error) {
+            errorObj.error = 'unable to load one or more images';
+          }
           if (loadedImages.length > index) {
             loadedImages[index] = undefined;
           }
         }
 
         (function(tempImage) {
-          tempImage.onload = function() {
-            loadedImages[index] = tempImage;
+          if(image.text) {
+              tempImage.text = image.text;
+          }
+          tempImage.onload = function(e) {
+            if(image.text) {
+              loadedImages[index] = {img:tempImage, text: tempImage.text};
+            } else {
+              loadedImages[index] = tempImage;
+            }
             loadedImagesLength += 1;
 
             if (loadedImagesLength === imagesLength) {
@@ -82,7 +94,11 @@ define([
     function addLoadedImagesToGif () {
       utils.each(loadedImages, function(index, loadedImage) {
         if (loadedImage) {
-          ag.addFrame(loadedImage, options);
+          if(loadedImage.text) {
+            ag.addFrame(loadedImage.img, options, loadedImage.text);
+          } else {
+            ag.addFrame(loadedImage, options);
+          }
         }
       });
       getBase64GIF(ag, callback);

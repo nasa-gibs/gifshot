@@ -217,7 +217,6 @@ define([
 
       utils.each(frames, function(iterator, frame) {
         var framePalette = frame.palette;
-
         onRenderProgressCallback(0.75 + 0.25 * frame.position * 1.0 / frames.length);
 
         gifWriter.addFrame(0, 0, width, height, frame.pixels, {
@@ -244,9 +243,8 @@ define([
     'setRepeat': function(r) {
       this.repeat = r;
     },
-    'addFrame': function(element, gifshotOptions) {
+    'addFrame': function(element, gifshotOptions, frameText) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
-
       var self = this,
         ctx = self.ctx,
         options = self.options,
@@ -265,16 +263,19 @@ define([
         textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height,
         font = fontWeight + ' ' + fontSize + ' ' + fontFamily,
         imageData;
-
       try {
         ctx.drawImage(element, 0, 0, width, height);
 
-        if (text) {
+        if (text || frameText) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
           ctx.textBaseline = textBaseline;
-          ctx.fillText(text, textXCoordinate, textYCoordinate);
+          if(frameText) {
+            ctx.fillText(frameText, textXCoordinate, textYCoordinate);
+          } else {
+            ctx.fillText(text, textXCoordinate, textYCoordinate);
+          }
         }
 
         imageData = ctx.getImageData(0, 0, width, height);
