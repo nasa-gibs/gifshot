@@ -48,23 +48,24 @@ define([
           addLoadedImagesToGif();
         }
       } else if (utils.isString(currentImage)) {
-        tempImage = document.createElement('img');
+        tempImage = new Image();
         if (options.crossOrigin) {
           tempImage.crossOrigin = options.crossOrigin;
-        }
-        tempImage.onerror = function(e) {
-          if(!errorObj.error) {
-            errorObj.error = 'unable to load one or more images';
-          }
-          if (loadedImages.length > index) {
-            loadedImages[index] = undefined;
-          }
         }
 
         (function(tempImage) {
           if(image.text) {
               tempImage.text = image.text;
           }
+          tempImage.onerror = function(e) {
+            var obj;
+              --imagesLength; // skips over images that error out
+              if(imagesLength === 0) {
+                obj = {};
+                obj.error = 'None of the requested images was capable of being retrieved';
+                return callback(obj);
+              }
+          };
           tempImage.onload = function(e) {
             if(image.text) {
               loadedImages[index] = {img:tempImage, text: tempImage.text};
@@ -78,9 +79,8 @@ define([
             }
             utils.removeElement(tempImage);
           };
+          tempImage.src = currentImage;
         }(tempImage));
-
-        tempImage.src = currentImage;
 
         utils.setCSSAttr(tempImage, {
           'position': 'fixed',

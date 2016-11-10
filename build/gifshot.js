@@ -1135,7 +1135,7 @@ AnimatedGIF = function (utils, frameWorkerCode, NeuQuant, GifWriter) {
     },
     'addFrame': function (element, gifshotOptions, frameText) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
-      var self = this, ctx = self.ctx, options = self.options, width = options.gifWidth, height = options.gifHeight, gifHeight = gifshotOptions.gifHeight, gifWidth = gifshotOptions.gifWidth, text = gifshotOptions.text, fontWeight = gifshotOptions.fontWeight, fontSize = utils.getFontSize(gifshotOptions), fontFamily = gifshotOptions.fontFamily, fontColor = gifshotOptions.fontColor, textAlign = gifshotOptions.textAlign, textBaseline = gifshotOptions.textBaseline, textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2, textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height, font = fontWeight + ' ' + fontSize + ' ' + fontFamily, imageData;
+      var self = this, ctx = self.ctx, options = self.options, width = options.gifWidth, height = options.gifHeight, gifHeight = gifshotOptions.gifHeight, gifWidth = gifshotOptions.gifWidth, text = gifshotOptions.text, fontWeight = gifshotOptions.fontWeight, fontSize = utils.getFontSize(gifshotOptions), fontFamily = gifshotOptions.fontFamily, fontColor = gifshotOptions.fontColor, textAlign = gifshotOptions.textAlign, textBaseline = gifshotOptions.textBaseline, textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2, textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height, font = fontWeight + ' ' + fontSize + ' ' + fontFamily, imageData, stroke;
       try {
         ctx.drawImage(element, 0, 0, width, height);
         if (text || frameText) {
@@ -1143,6 +1143,12 @@ AnimatedGIF = function (utils, frameWorkerCode, NeuQuant, GifWriter) {
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
           ctx.textBaseline = textBaseline;
+          if (gifshotOptions.stroke && frameText) {
+            stroke = gifshotOptions.stroke;
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.pixels * 2;
+            ctx.strokeText(frameText, textXCoordinate, textYCoordinate);
+          }
           if (frameText) {
             ctx.fillText(frameText, textXCoordinate, textYCoordinate);
           } else {
@@ -1231,21 +1237,23 @@ existingImages = function (obj) {
         addLoadedImagesToGif();
       }
     } else if (utils.isString(currentImage)) {
-      tempImage = document.createElement('img');
+      tempImage = new Image();
       if (options.crossOrigin) {
         tempImage.crossOrigin = options.crossOrigin;
       }
-      tempImage.onerror = function (e) {
-        if (!errorObj.error) {
-          errorObj.error = 'unable to load one or more images';
-        }
-        if (loadedImages.length > index) {
-          loadedImages[index] = undefined;
-        }
-      }(function (tempImage) {
+      (function (tempImage) {
         if (image.text) {
           tempImage.text = image.text;
         }
+        tempImage.onerror = function (e) {
+          var obj;
+          --imagesLength;
+          if (imagesLength === 0) {
+            obj = {};
+            obj.error = 'None of the requested images was capable of being retrieved';
+            return callback(obj);
+          }
+        };
         tempImage.onload = function (e) {
           if (image.text) {
             loadedImages[index] = {
@@ -1261,8 +1269,8 @@ existingImages = function (obj) {
           }
           utils.removeElement(tempImage);
         };
+        tempImage.src = currentImage;
       }(tempImage));
-      tempImage.src = currentImage;
       utils.setCSSAttr(tempImage, {
         'position': 'fixed',
         'opacity': '0'
