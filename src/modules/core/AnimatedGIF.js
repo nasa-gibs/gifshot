@@ -262,15 +262,21 @@ define([
         textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2,
         textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height,
         font = fontWeight + ' ' + fontSize + ' ' + fontFamily,
-        imageData;
+        imageData,
+        stroke;
       try {
         ctx.drawImage(element, 0, 0, width, height);
-
         if (text || frameText) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
           ctx.textBaseline = textBaseline;
+          if(gifshotOptions.stroke && frameText) {
+            stroke = gifshotOptions.stroke;
+            ctx.strokeStyle = stroke.color;
+            ctx.lineWidth = stroke.pixels * 2;
+            ctx.strokeText(frameText, textXCoordinate, textYCoordinate);
+          }
           if(frameText) {
             ctx.fillText(frameText, textXCoordinate, textYCoordinate);
           } else {
