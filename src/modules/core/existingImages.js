@@ -75,6 +75,9 @@ define([
             loadedImagesLength += 1;
 
             if (loadedImagesLength === imagesLength) {
+              if(obj.options.pause) {
+                addPauseFrames(obj.options);
+              }
               addLoadedImagesToGif();
             }
             utils.removeElement(tempImage);
@@ -90,7 +93,16 @@ define([
         document.body.appendChild(tempImage);
       }
     });
+    function addPauseFrames(options) {
+      var speed = 1 / options.interval;
+      var len = speed * options.pause;
+      var lastImage = loadedImages[loadedImages.length - 1];
+      for(var i = 0;
+        i < len; i++) {
+        loadedImages.push(lastImage);
+      }
 
+    }
     function addLoadedImagesToGif () {
       utils.each(loadedImages, function(index, loadedImage) {
         if (loadedImage) {
