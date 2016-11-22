@@ -58,13 +58,19 @@ define([
               tempImage.text = image.text;
           }
           tempImage.onerror = function(e) {
-            var obj;
-              --imagesLength; // skips over images that error out
-              if(imagesLength === 0) {
-                obj = {};
-                obj.error = 'None of the requested images was capable of being retrieved';
-                return callback(obj);
+            var error;
+            --imagesLength; // skips over images that error out
+            if(imagesLength === 0) {
+              error = {};
+              error.error = 'None of the requested images was capable of being retrieved';
+              return callback(error);
+            }
+            if (loadedImagesLength === imagesLength) {
+              if(obj.options.pause) {
+                addPauseFrames(obj.options);
               }
+              addLoadedImagesToGif();
+            }
           };
           tempImage.onload = function(e) {
             if(image.text) {
@@ -73,7 +79,6 @@ define([
               loadedImages[index] = tempImage;
             }
             loadedImagesLength += 1;
-
             if (loadedImagesLength === imagesLength) {
               if(obj.options.pause) {
                 addPauseFrames(obj.options);
