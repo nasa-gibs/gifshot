@@ -245,11 +245,15 @@ define([
     },
     'addFrame': function(element, gifshotOptions, frameText) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
+
       var self = this,
         ctx = self.ctx,
         options = self.options,
         width = options.gifWidth,
         height = options.gifHeight,
+        stamp = options.stamp,
+        stampHeight = 26,
+        stampWidth = stampHeight / 0.192,
         gifHeight = gifshotOptions.gifHeight,
         gifWidth = gifshotOptions.gifWidth,
         text = gifshotOptions.text,
@@ -259,13 +263,28 @@ define([
         fontColor = gifshotOptions.fontColor,
         textAlign = gifshotOptions.textAlign,
         textBaseline = gifshotOptions.textBaseline,
-        textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2,
-        textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height,
+        textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width - 7: width / 2,
+        textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 7 : textBaseline === 'center' ? height / 2 : height,
         font = fontWeight + ' ' + fontSize + ' ' + fontFamily,
         imageData,
         stroke;
+      if(width < 250) {
+        if(width < 90) {
+          //if too small remove stamp
+          stamp = null;
+          frameText = null;
+        } else if(height < 50) {
+          stamp = null;
+        } else {
+          textXCoordinate = 90;
+          textYCoordinate = height - 30;
+        }
+      }
       try {
         ctx.drawImage(element, 0, 0, width, height);
+        if(stamp && stampWidth > 80) {
+            ctx.drawImage(stamp, 2.5, 2.5);
+        }
         if (text || frameText) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
