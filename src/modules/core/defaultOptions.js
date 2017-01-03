@@ -15,6 +15,7 @@ define({
   'keepCameraOn': false,
   'images': [],
   'video': null,
+  'stamp': null,
   'webcamVideoElement': null,
   'cameraStream': null,
   'text': '',
