@@ -22,8 +22,7 @@
     "preview": "node demo/server/server.js",
     "build": "gulp",
     "watch": "gulp watch",
-    "test": "gulp test",
-    "postinstall": "gulp && gulp custom-build --image"
+    "test": "gulp test"
   },
   "precommit": [
     "build"
