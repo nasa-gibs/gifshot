@@ -273,7 +273,7 @@ define([
           var stampCoordinates = options.stampCoordinates || { x: 2.5, y: 2.5 }
           ctx.drawImage(stamp, stampCoordinates.x, stampCoordinates.y, stampWidth, stampHeight);
         }
-        if (text || frameText) {
+        if (text || (frameText && gifshotOptions.showFrameText)) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
