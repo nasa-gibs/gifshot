@@ -245,15 +245,14 @@ define([
     },
     'addFrame': function(element, gifshotOptions, frameText) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
-
       var self = this,
         ctx = self.ctx,
         options = self.options,
         width = options.gifWidth,
         height = options.gifHeight,
         stamp = options.stamp,
-        stampHeight = 26,
-        stampWidth = stampHeight / 0.192,
+        stampHeight = options.stampHeight,
+        stampWidth = options.stampWidth,
         gifHeight = gifshotOptions.gifHeight,
         gifWidth = gifshotOptions.gifWidth,
         text = gifshotOptions.text,
@@ -268,24 +267,13 @@ define([
         font = fontWeight + ' ' + fontSize + ' ' + fontFamily,
         imageData,
         stroke;
-      if(width < 250) {
-        if(width < 90) {
-          //if too small remove stamp
-          stamp = null;
-          frameText = null;
-        } else if(height < 50) {
-          stamp = null;
-        } else {
-          textXCoordinate = 90;
-          textYCoordinate = height - 30;
-        }
-      }
       try {
         ctx.drawImage(element, 0, 0, width, height);
-        if(stamp && stampWidth > 80) {
-            ctx.drawImage(stamp, 2.5, 2.5);
+        if(stamp) {
+          var stampCoordinates = options.stampCoordinates || { x: 2.5, y: 2.5 }
+          ctx.drawImage(stamp, stampCoordinates.x, stampCoordinates.y, stampWidth, stampHeight);
         }
-        if (text || frameText) {
+        if (text || (frameText && gifshotOptions.showFrameText)) {
           ctx.font = font;
           ctx.fillStyle = fontColor;
           ctx.textAlign = textAlign;
