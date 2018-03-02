@@ -13,11 +13,14 @@
     "WebRTC",
     "getUserMedia"
   ],
-  "contributors": [{
-    "name": "Chase West"
-  }, {
-    "name": "Greg Franko"
-  }],
+  "contributors": [
+    {
+      "name": "Chase West"
+    },
+    {
+      "name": "Greg Franko"
+    }
+  ],
   "scripts": {
     "preview": "node demo/server/server.js",
     "build": "gulp",
@@ -28,7 +31,7 @@
   "precommit": [
     "build"
   ],
-  "devDependencies": {
+  "dependencies": {
     "amdclean": "latest",
     "chai": "^1.9.1",
     "express": "^4.2.0",
