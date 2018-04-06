@@ -201,13 +201,17 @@ gifshot.createGIF({
   }
 });
 ```
-**Images With Frame-Specific Text**
+**Images With Frame-Specific Text or Delays**
 ```javascript
 gifshot.createGIF({
   'images': [
-    { src:'http://i.imgur.com/2OO33vX.jpg', text:'First image text' },
-    { src:'http://i.imgur.com/qOwVaSN.png', text:'Second image text' },
-    { src:'http://i.imgur.com/Vo5mFZJ.gif', text:'Third image text' }
+    { src: 'http://i.imgur.com/2OO33vX.jpg', text: 'First image text' },
+    { src: 'http://i.imgur.com/qOwVaSN.png', text: 'Second image text' },
+    {
+      src: 'http://i.imgur.com/Vo5mFZJ.gif',
+      text: 'Third image text',
+      delay: 2000 // ms, This delay is added to the options.interval for this specific frame
+    }
   ]
 },function(obj) {
   if(!obj.error) {
