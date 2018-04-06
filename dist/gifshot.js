@@ -1768,13 +1768,14 @@ AnimatedGIF.prototype = {
 
         utils.each(frames, function (iterator, frame) {
             var framePalette = frame.palette;
+            var frameDelay = frame.delay;
 
             onRenderProgressCallback(0.75 + 0.25 * frame.position * 1.0 / frames.length);
 
             for (var i = 0; i < frameDuration; i++) {
                 gifWriter$$1.addFrame(0, 0, width, height, frame.pixels, {
                     palette: framePalette,
-                    delay: delay
+                    delay: frameDelay ? frameDelay * 0.1 + delay : delay
                 });
             }
         });
@@ -1798,7 +1799,7 @@ AnimatedGIF.prototype = {
     setRepeat: function setRepeat(r) {
         this.repeat = r;
     },
-    addFrame: function addFrame(element, gifshotOptions, frameText) {
+    addFrame: function addFrame(element, gifshotOptions, frameText, frameDelay) {
         gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
 
         var self = this;
@@ -1846,13 +1847,14 @@ AnimatedGIF.prototype = {
             }
             imageData = ctx.getImageData(0, 0, width, height);
 
-            self.addFrameImageData(imageData);
+            self.addFrameImageData(imageData, frameDelay);
         } catch (e) {
             return '' + e;
         }
     },
     addFrameImageData: function addFrameImageData() {
         var imageData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var frameDelay = arguments[1];
 
         var frames = this.frames;
         var imageDataArray = imageData.data;
@@ -1865,7 +1867,8 @@ AnimatedGIF.prototype = {
             'dithering': null,
             'done': false,
             'beingProcessed': false,
-            'position': frames.length
+            'position': frames.length,
+            'delay': frameDelay
         });
     },
     onRenderProgress: function onRenderProgress(callback) {
@@ -1985,10 +1988,6 @@ function existingImages() {
             }
 
             (function (tempImage) {
-                if (image.text) {
-                    tempImage.text = image.text;
-                }
-
                 tempImage.onerror = function (e) {
                     var obj = void 0;
 
@@ -2003,10 +2002,11 @@ function existingImages() {
                 };
 
                 tempImage.onload = function (e) {
-                    if (image.text) {
+                    if (image.text || image.delay) {
                         loadedImages[index] = {
                             img: tempImage,
-                            text: tempImage.text
+                            text: image.text,
+                            delay: image.delay
                         };
                     } else {
                         loadedImages[index] = tempImage;
@@ -2036,8 +2036,8 @@ function existingImages() {
     function addLoadedImagesToGif() {
         utils.each(loadedImages, function (index, loadedImage) {
             if (loadedImage) {
-                if (loadedImage.text) {
-                    ag.addFrame(loadedImage.img, options, loadedImage.text);
+                if (loadedImage.text || loadedImage.delay) {
+                    ag.addFrame(loadedImage.img, options, loadedImage.text, loadedImage.delay);
                 } else {
                     ag.addFrame(loadedImage, options);
                 }

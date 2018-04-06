@@ -235,13 +235,14 @@ AnimatedGIF.prototype = {
 
       utils.each(frames, (iterator, frame) => {
           const framePalette = frame.palette;
+          const frameDelay = frame.delay;
 
           onRenderProgressCallback(0.75 + 0.25 * frame.position * 1.0 / frames.length);
 
           for (let i = 0; i < frameDuration; i ++) {
               gifWriter.addFrame(0, 0, width, height, frame.pixels, {
                   palette: framePalette,
-                  delay: delay
+                  delay: (frameDelay) ? (frameDelay * 0.1) + delay : delay
               });
           }
       });
@@ -265,7 +266,7 @@ AnimatedGIF.prototype = {
   setRepeat: function (r) {
       this.repeat = r;
   },
-  addFrame: function (element, gifshotOptions, frameText) {
+  addFrame: function (element, gifshotOptions, frameText, frameDelay) {
       gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
 
       const self = this;
@@ -296,7 +297,6 @@ AnimatedGIF.prototype = {
       const textToUse = (frameText && gifshotOptions.showFrameText) ? frameText : text;
       let imageData;
 
-
       try {
           ctx.filter = filter;
 
@@ -314,12 +314,12 @@ AnimatedGIF.prototype = {
           }
           imageData = ctx.getImageData(0, 0, width, height);
 
-          self.addFrameImageData(imageData);
+          self.addFrameImageData(imageData, frameDelay);
       } catch (e) {
           return '' + e;
       }
   },
-  addFrameImageData: function (imageData = {}) {
+  addFrameImageData: function (imageData = {}, frameDelay) {
       const frames = this.frames;
       const imageDataArray = imageData.data;
 
@@ -331,7 +331,8 @@ AnimatedGIF.prototype = {
           'dithering': null,
           'done': false,
           'beingProcessed': false,
-          'position': frames.length
+          'position': frames.length,
+          'delay': frameDelay
       });
   },
   onRenderProgress: function (callback) {

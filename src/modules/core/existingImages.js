@@ -62,10 +62,6 @@ export default function existingImages (obj = {}) {
             }
 
             (function (tempImage) {
-                if(image.text) {
-                    tempImage.text = image.text;
-                }
-
                 tempImage.onerror = function (e) {
                     let obj;
 
@@ -80,10 +76,11 @@ export default function existingImages (obj = {}) {
                 };
 
                 tempImage.onload = function (e) {
-                    if(image.text) {
+                    if(image.text || image.delay) {
                         loadedImages[index] = {
                             img:tempImage,
-                            text: tempImage.text
+                            text: image.text,
+                            delay: image.delay
                         };
                     } else {
                         loadedImages[index] = tempImage;
@@ -113,8 +110,8 @@ export default function existingImages (obj = {}) {
     function addLoadedImagesToGif () {
         utils.each(loadedImages, function (index, loadedImage) {
             if (loadedImage) {
-                if(loadedImage.text) {
-                    ag.addFrame(loadedImage.img, options, loadedImage.text);
+                if(loadedImage.text || loadedImage.delay) {
+                    ag.addFrame(loadedImage.img, options, loadedImage.text, loadedImage.delay);
                 } else {
                     ag.addFrame(loadedImage, options);
                 }
